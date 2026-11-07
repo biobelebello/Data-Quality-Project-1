@@ -1,0 +1,38 @@
+# Data Dictionary: `bank_marketing_clean.csv`
+
+**Rows:** 41,176 (one row per customer contact record) · **Columns:** 26 · **Target:** `subscribed` / `y` · **Source:** UCI Bank Marketing, `bank-additional-full.csv` (Moro, Cortez & Rita, 2014)
+
+Conventions: `unknown` = value not recorded by the bank (kept as a category). A blank cell appears only in `days_since_prev_contact`. Columns marked *derived* were created during cleaning (see notebook section 5).
+
+| Column | Type | Non-null | Unique | Description | Allowed values / units | Source | Cleaning & usage notes |
+|---|---|---|---|---|---|---|---|
+| `age` | integer | 41,176 | 78 | Customer age | 17–98 years | raw | No changes; range checked |
+| `age_band` | category | 41,176 | 5 | Age group | under_30, 30_39, 40_49, 50_59, 60_plus | derived from age | For segment reporting |
+| `job` | category | 41,176 | 12 | Type of job | admin., blue-collar, entrepreneur, housemaid, management, retired, self-employed, services, student, technician, unemployed, unknown | raw | 'unknown' (0.8%) kept as its own category |
+| `marital` | category | 41,176 | 4 | Marital status (divorced includes widowed) | married, single, divorced, unknown | raw | 'unknown' (0.2%) kept |
+| `education` | category | 41,176 | 8 | Highest education level | basic.4y, basic.6y, basic.9y, high.school, professional.course, university.degree, illiterate, unknown | raw | 'unknown' (4.2%) kept |
+| `credit_default` | category | 41,176 | 3 | Has credit in default? | no, yes, unknown | raw `default` (renamed) | Renamed: `default` is an SQL keyword. 20.9% unknown and only 3 'yes', so of little use for decisions |
+| `housing` | category | 41,176 | 3 | Has a housing loan? | no, yes, unknown | raw | 'unknown' (2.4%) kept |
+| `loan` | category | 41,176 | 3 | Has a personal loan? | no, yes, unknown | raw | 'unknown' (2.4%) kept |
+| `contact` | category | 41,176 | 2 | Contact channel used | cellular, telephone | raw | No changes |
+| `month` | category | 41,176 | 10 | Month of the last contact | mar–dec (no jan/feb in data) | raw | Year not recorded |
+| `month_num` | integer | 41,176 | 10 | Month as a number for sorting | 3–12 | derived from month | Added for ordering |
+| `day_of_week` | category | 41,176 | 5 | Weekday of the last contact | mon, tue, wed, thu, fri | raw | No changes |
+| `duration` | integer | 41,176 | 1544 | Last call duration | seconds, 0–4918 | raw | LEAKAGE: only known after the call ends. Don't use for targeting or predictive models. Kept for description only. 4 rows = 0 s (all 'no') |
+| `campaign` | integer | 41,176 | 42 | Number of contacts with this customer in this campaign (including the last) | calls, 1–56 | raw | Extreme values kept (plausible records) |
+| `high_contact_flag` | binary (0/1) | 41,176 | 2 | 1 if campaign > 10 calls | 0, 1 | derived from campaign | Flags 2.1% of rows with very high call counts |
+| `previous` | integer | 41,176 | 8 | Number of contacts before this campaign | 0–7 | raw | Trusted as the indicator of prior contact |
+| `previously_contacted` | binary (0/1) | 41,176 | 2 | 1 if the customer was contacted in a previous campaign | 0, 1 | derived from previous > 0 | Replaces the unreliable pdays=999 test (4,110 rows conflicted) |
+| `days_since_prev_contact` | integer (nullable) | 1,515 | 26 | Days since the customer was last contacted in a previous campaign | 0–27 days; blank = not known / not contacted | derived from raw `pdays` | Sentinel 999 converted to blank (null). Raw `pdays` removed. 96.3% blank |
+| `poutcome` | category | 41,176 | 3 | Outcome of the previous campaign | success, failure, nonexistent | raw | 'nonexistent' = no previous campaign contact |
+| `emp_var_rate` | float | 41,176 | 10 | Employment variation rate (quarterly indicator) | -3.4 to 1.4 | raw `emp.var.rate` | Renamed; macroeconomic context, same for all calls in a period |
+| `cons_price_idx` | float | 41,176 | 26 | Consumer price index (monthly) | 92.2–94.8 | raw `cons.price.idx` | Renamed; macroeconomic |
+| `cons_conf_idx` | float | 41,176 | 26 | Consumer confidence index (monthly) | -50.8 to -26.9 | raw `cons.conf.idx` | Renamed; macroeconomic |
+| `euribor3m` | float | 41,176 | 316 | 3-month Euribor interest rate (daily) | 0.63–5.05 % | raw | Macroeconomic |
+| `nr_employed` | float | 41,176 | 11 | Number employed (quarterly indicator, thousands) | 4963.6–5228.1 | raw `nr.employed` | Renamed; macroeconomic |
+| `y` | category | 41,176 | 2 | Did the customer subscribe to a term deposit? (target) | yes, no | raw | Original target kept for traceability |
+| `subscribed` | binary (0/1) | 41,176 | 2 | Numeric version of the target | 1 = yes, 0 = no | derived from y | Mean = 11.27% subscription rate |
+
+**Removed column:** `pdays` (replaced by `days_since_prev_contact` and `previously_contacted`).
+
+**Leakage warning:** exclude `duration`, `y` and `subscribed` from any feature set used to decide whom to call.

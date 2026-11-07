@@ -1,0 +1,13 @@
+check,passed
+row count = raw minus 12 duplicates,True
+no duplicate rows,True
+no nulls except days_since_prev_contact,True
+no 999 sentinel left,True
+days_since_prev_contact in 0-27 when present,True
+subscribed matches y,True
+subscribed is binary,True
+age within 17-98,True
+campaign >= 1,True
+previously_contacted consistent with poutcome,True
+column names SQL-safe (no dots),True
+positive rate unchanged (11.27%),True
